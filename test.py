@@ -10,18 +10,20 @@ for i in range(0, 10):
     query = (d[i][0].text)
     query.lower()
     query1 = query.split()
-    stopwords = open('stoplist.txt', 'r')
-    sp = stopwords.readlines()
     
-    filtered_sentence = [] 
-    
+    huge_list = []
+
+    with open("stoplist.txt", "r") as f:
+        huge_list = f.read().split()
+
     for w in query1: 
-        if w not in sp: 
-            filtered_sentence.append(w)
-    
-    stopwords.close()            
-    
-    query2 = [PorterStemmer().stem(s) for s in filtered_sentence]
+        if w in huge_list:
+            #print(query1)        
+            query1.remove(w)
+            
+    query2 = [PorterStemmer().stem(s) for s in query1]
+    print(query2)
+    query2 = [w.replace("world'", 'world') for w in query2]
     queries.append(query2)
     
 print(queries)        

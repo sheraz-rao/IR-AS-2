@@ -84,7 +84,7 @@ def process_files(path):
         for token in stemm:
             if  token not in term_map:
                 term_map[token] = term_id
-                terms.append(str(term_id) + '\t' + token) #it will be write to the file
+                terms.append(str(term_id) + '\t' + token) #it will be writen to the file
                 term_id += 1
             doc_term_positions.append((doc_id, term_map[token], pos))
             pos += 1
@@ -126,7 +126,6 @@ def final_indexing(parameter):
     final_index = {}
     
     for fname in parameter.keys():
-        
         #iterate through every word in the parameter hash
         for word in parameter[fname].keys():
             #check if that word is present as a key in the final_index. 
@@ -197,8 +196,8 @@ def queryParser(term_map):
             
             if res != "Not Found!":
                 f =  linecache.getline(file, res)
-                print("docs_count")
-                print(list(map(f)))
+                #print("\t\tdocs_count")
+                print(f)
                 
                 freq[word] = queryFrequency(query2) #it is the tf(q, i) according to formula
         
@@ -314,3 +313,8 @@ if __name__=="__main__":
         
         queries, freq = queryParser(term_map)
         #print(freq)
+        for word in queries:
+            #print(word)
+            for w in word:
+                #print(index[w])
+                print(len(index[w]))
