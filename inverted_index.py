@@ -166,8 +166,9 @@ INPUT_DIRECTORY = "CORPUS"
 INPUT_FOLDER = os.getcwd() + "/" + INPUT_DIRECTORY
 
 # Function to parse the queries
-def queryParser():
+def queryParser(term_map):
     queries = []
+    freq = {}
     data = et.parse('topics.xml')
     d = data.getroot()
     
@@ -175,18 +176,36 @@ def queryParser():
         query = (d[i][0].text)
         query.lower()
         query1 = query.split()
-        stopwords = open('stoplist.txt', 'r')
     
-        filtered_sentence = [] 
-        
+        huge_list = []
+
+        with open("stoplist.txt", "r") as f:
+            huge_list = f.read().split()
+
         for w in query1: 
-            if w not in stopwords: 
-                filtered_sentence.append(w)
-        stopwords.close()            
-        query2 = [PorterStemmer().stem(s) for s in filtered_sentence]
+            if w in huge_list:
+                #print(query1)        
+                query1.remove(w)
+            
+        query2 = [PorterStemmer().stem(s) for s in query1]
+        
+        for word in query2:
+            res = (term_map.get(word, "Not Found!"))
+            print(word, res)
+        
+            file = "term_info.txt"
+            
+            if res != "Not Found!":
+                f =  linecache.getline(file, res)
+                print("docs_count")
+                print(list(map(f)))
+                
+                freq[word] = queryFrequency(query2) #it is the tf(q, i) according to formula
+        
+        query2 = [w.replace("world'", 'world') for w in query2]
         queries.append(query2)
-    
-    return queries
+
+    return queries, freq
 
 def queryTitle():
     names = []
@@ -209,7 +228,7 @@ def queryFrequency(query):
             queryFreq[term] += 1
         else:
             queryFreq[term] = 1
-    return queryFreq
+    return queryFreq[term]
 
 # Function to calculate average length of all the documents in the corpus
 def calculateAverageLength(fileLengths):
@@ -222,7 +241,8 @@ def calculateAverageLength(fileLengths):
 def calculateBM25(n, f, qf, r, N, dl, avdl):
     K = k1 * ((1 - b) + b * (float(dl) / float(avdl)))
     Q1 = log(((r + 0.5) / (R - r + 0.5)) / ((n - r + 0.5) / (N - n - R + r + 0.5)))
-    Q2 = ((k1 + 1) * f) / (K + f)
+    temp = np.asarray(f)
+    Q2 = ((k1 + 1) * temp) / (K + temp)
     Q3 = ((k2 + 1) * qf) / (k2 + qf)
     return Q1 * Q2 * Q3
 
@@ -262,7 +282,8 @@ def writeToFile(queries, invertedIndex, fileLengths):
     
     for query in queries:
         BM25ScoreList = findDocumentsForQuery(query, invertedIndex, fileLengths)
-        sortedScoreList = sorted(BM25ScoreList.items(), key=lambda x:x[1], reverse=True)
+        print(BM25ScoreList)
+        sortedScoreList = sorted(BM25ScoreList.items(), key=lambda x:x[0], reverse=True)
         
         if not os.path.exists(BM_25_SCORE_LIST):
             os.makedirs(BM_25_SCORE_LIST)
@@ -290,14 +311,6 @@ if __name__=="__main__":
         # #print(query)
         
         # query1 = PorterStemmer().stem(query)
-        # res = (term_map.get(query1, "Not Found!"))
-        # #print(res)
         
-        # file = "term_info.txt"
-        
-        # f =  linecache.getline(file, res)
-        # print("TermID, offset, t_pos, docs_count")
-        # print((f))
-        
-        queries = queryParser()
-        writeToFile(queries, index, fLen)
+        queries, freq = queryParser(term_map)
+        #print(freq)
