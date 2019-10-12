@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as et
 from nltk import PorterStemmer
+from nltk.tokenize import word_tokenize
 
 queries = []
 data = et.parse('topics.xml')
@@ -8,12 +9,16 @@ d = data.getroot()
 for i in range(0, 10):
     query = (d[i][0].text)
     query.lower()
-    query.split()
-    # stopwords = open('stoplist.txt', 'r')
-    # stop = [w for w in query if w not in stopwords]
-    # stopwords.close()
-                
-    stemm = [PorterStemmer().stem(s) for s in query]
-    queries.append(stemm)
+    query1 = query.split()
+    stopwords = open('stoplist.txt', 'r')
+  
+    filtered_sentence = [] 
+    
+    for w in query1: 
+        if w not in stopwords: 
+            filtered_sentence.append(w)
+    stopwords.close()            
+    query2 = [PorterStemmer().stem(s) for s in filtered_sentence]
+    queries.append(query2)
     
 print(queries)        
