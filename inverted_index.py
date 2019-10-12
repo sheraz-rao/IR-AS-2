@@ -7,11 +7,12 @@ import re
 import codecs
 import sys
 
-#path = r'F:\IR\IR-AS-1\corpus1\corpus\corpus'
+corpus_path = r'F:\IR\IR-AS-1\corpus\corpus\corpus'
 
 mapping = {} #this will have {fname: [word,...],...}
 posting = {}
 docs = []
+fileLengths = {}
 
 def remove_headers(file_name):
     with codecs.open(file_name, encoding="utf-8", errors = 'ignore') as f: 
@@ -67,6 +68,8 @@ def process_files(path):
         re.sub(r'[\W_]+','', text2)
         
         tokens = word_tokenize(text2)
+        
+        fileLengths[file] = len(text.split())
                     
         print("stop wording...\n")           
         stop = [w for w in tokens if w not in sp]
@@ -90,19 +93,9 @@ def process_files(path):
         docs.append((str(doc_id) + '\t' + file))
         doc_id += 1
 
-    for p in doc_term_positions:
-        if posting.__contains__((p[0], p[1])) == False:
-            posting[(p[0], p[1])] = [p[2]]
-        else:
-            posting[(p[0], p[1])].append(p[2])
-                   
-    #term_file.write(terms)
-    #np.savetxt('temp_termids.txt', terms, encoding="utf-8", fmt='%s')
-    #np.savetxt('temp_docids.txt', docs, encoding="utf-8", fmt='%s')
-    
     print("File pre processed.... returning:\n")
     #term_file.close()                               
-    return mapping, term_map
+    return mapping, term_map, fileLengths
 
 
 def make_word_pos_dict(parameter):
@@ -157,6 +150,131 @@ def final_indexing(parameter):
     return final_index
 
 import linecache
+from math import log
+import xml.etree.ElementTree as et
+
+# Declaring global variables
+k1 = 1.2
+k2 = 100
+b = 0.75
+R = 0.0
+r = 0
+N = 1000
+QUERY = "topics.xml"
+BM_25_SCORE_LIST = "BM_25_SCORE_LIST"
+INPUT_DIRECTORY = "CORPUS"
+INPUT_FOLDER = os.getcwd() + "/" + INPUT_DIRECTORY
+
+# Function to parse the queries
+def queryParser():
+    queries = []
+    data = et.parse('topics.xml')
+    d = data.getroot()
+    
+    for i in range(0, 10):
+        query = (d[i][0].text)
+        query.lower()
+        query1 = query.split()
+        stopwords = open('stoplist.txt', 'r')
+    
+        filtered_sentence = [] 
+        
+        for w in query1: 
+            if w not in stopwords: 
+                filtered_sentence.append(w)
+        stopwords.close()            
+        query2 = [PorterStemmer().stem(s) for s in filtered_sentence]
+        queries.append(query2)
+    
+    return queries
+
+def queryTitle():
+    names = []
+    data = et.parse('topics.xml')
+    d = data.getroot()
+    
+    for i in range(0, 10):
+        query = (d[i][0].text)
+        query.lower()
+        query1 = query.splitlines()
+        names.append(query1)
+        
+    return names    
+
+# Function that returns a dictionary of term and its frequency in a query
+def queryFrequency(query):
+    queryFreq = {}
+    for term in query:
+        if term in queryFreq.keys():
+            queryFreq[term] += 1
+        else:
+            queryFreq[term] = 1
+    return queryFreq
+
+# Function to calculate average length of all the documents in the corpus
+def calculateAverageLength(fileLengths):
+    avgLength = 0
+    for file in fileLengths.keys():
+        avgLength += fileLengths[file]
+    return avgLength/N
+
+# Function to calculate BM25 score
+def calculateBM25(n, f, qf, r, N, dl, avdl):
+    K = k1 * ((1 - b) + b * (float(dl) / float(avdl)))
+    Q1 = log(((r + 0.5) / (R - r + 0.5)) / ((n - r + 0.5) / (N - n - R + r + 0.5)))
+    Q2 = ((k1 + 1) * f) / (K + f)
+    Q3 = ((k2 + 1) * qf) / (k2 + qf)
+    return Q1 * Q2 * Q3
+
+# Function to score the documents based on the given query
+def findDocumentsForQuery(query, invertedIndex, fileLengths):
+    queryFreq = queryFrequency(query)
+    
+    avdl = calculateAverageLength(fileLengths)
+    
+    BM25ScoreList = {}
+    
+    for term in query:
+        if term in invertedIndex.keys():
+            qf = queryFreq[term]
+            docDict = invertedIndex[term]
+            
+            for doc in docDict:
+                n = len(docDict)
+                f = docDict[doc]
+                dl = fileLengths[doc]
+                
+                BM25 = calculateBM25(n, f, qf, r, N, dl, avdl)
+                
+                if doc in BM25ScoreList.keys():
+                    BM25ScoreList[doc] += BM25
+                
+                else:
+                    BM25ScoreList[doc] = BM25
+    
+    return BM25ScoreList
+
+# Function to write top 100 ranked documents for each query 
+def writeToFile(queries, invertedIndex, fileLengths):
+    queryID = 1
+    
+    queryNames = queryTitle()
+    
+    for query in queries:
+        BM25ScoreList = findDocumentsForQuery(query, invertedIndex, fileLengths)
+        sortedScoreList = sorted(BM25ScoreList.items(), key=lambda x:x[1], reverse=True)
+        
+        if not os.path.exists(BM_25_SCORE_LIST):
+            os.makedirs(BM_25_SCORE_LIST)
+        
+        file = open( BM_25_SCORE_LIST + "/BM_25_SCORE_LIST_" + str(queryNames[queryID-1]) + ".txt", "w")
+        
+        for rank in range(100):
+            text = str(queryID) +  "   " + "0" +  "   " + str(sortedScoreList[rank][0]) + "   " + str(rank+1) +  "   " + str(sortedScoreList[rank][1]) +  "   " + "BM25" +"\n"
+            file.write(text)
+        
+        queryID += 1
+
 
 if __name__=="__main__":
     if len(sys.argv) != 2:
@@ -164,19 +282,22 @@ if __name__=="__main__":
         
     else:
         print(sys.argv[1])
-        res, term_map = process_files(sys.argv[1])
+        res, term_map, fLen = process_files(sys.argv[1])
         hashmap = make_hashmap_of_hashmap(res)
         index = final_indexing(hashmap)
     
-        query = input("\nEnter Word to Search: ")
-        #print(query)
+        # query = input("\nEnter Word to Search: ")
+        # #print(query)
         
-        query1 = PorterStemmer().stem(query)
-        res = (term_map.get(query1, "Not Found!"))
-        #print(res)
+        # query1 = PorterStemmer().stem(query)
+        # res = (term_map.get(query1, "Not Found!"))
+        # #print(res)
         
-        file = "term_info.txt"
+        # file = "term_info.txt"
         
-        f =  linecache.getline(file, res)
-        print("TermID, offset, t_pos, docs_count")
-        print((f))
+        # f =  linecache.getline(file, res)
+        # print("TermID, offset, t_pos, docs_count")
+        # print((f))
+        
+        queries = queryParser()
+        writeToFile(queries, index, fLen)
