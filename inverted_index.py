@@ -239,13 +239,12 @@ def calculateAverageLength(fileLengths):
     return (avgLength/3495)
 
 # Function to calculate BM25 score
-def calculateBM25(n, f, qf, r, N, dl, avdl):
-    K = k1 * ((1 - b) + b * (float(dl) / float(avdl)))
-    Q1 = log(((r + 0.5) / (R - r + 0.5)) / ((n - r + 0.5) / (N - n - R + r + 0.5)))
-    temp = np.asarray(f)
-    Q2 = ((k1 + 1) * temp) / (K + temp)
-    Q3 = ((k2 + 1) * qf) / (k2 + qf)
-    return Q1 * Q2 * Q3
+def calculateBM25(index, w, name, fLen, avgLen, df, tdf, freq):
+    
+    K = 1.2 * ((1 - 0.75) + (0.75 * ((fLen[name])/avgLen)))
+    score = (log((3495 + 0.5)/(df + 0.5)) * ((2.2 * tdf) / (K + tdf)) * (((1 + 100) * (freq[w])) / (100 + freq[w])))
+    
+    return score 
 
 # Function to score the documents based on the given query
 def findDocumentsForQuery(query, invertedIndex, fileLengths):
@@ -291,12 +290,16 @@ def writeToFile(queries, invertedIndex, fileLengths):
         
         file = open( BM_25_SCORE_LIST + "/BM_25_SCORE_LIST_" + str(queryNames[queryID-1]) + ".txt", "w")
         
-        for rank in range(100):
+        for rank in range(0, 10):
+            data = et.parse('topics.xml')
+            d = data.getroot()
+            
+            queryID = d[rank].get('number')
+            
             text = str(queryID) +  "   " + "0" +  "   " + str(sortedScoreList[rank][0]) + "   " + str(rank+1) +  "   " + str(sortedScoreList[rank][1]) +  "   " + "BM25" +"\n"
             file.write(text)
         
         queryID += 1
-
 
 if __name__=="__main__":
     if len(sys.argv) != 2:
@@ -309,9 +312,12 @@ if __name__=="__main__":
         index = final_indexing(hashmap)
 
         queries, freq = queryParser(term_map)
+        queryNames = queryTitle()
 
         avgLen = calculateAverageLength(fLen)
+        
         score = 0
+        queryID = 1
         
         BM25ScoreList = {}
         
@@ -326,16 +332,33 @@ if __name__=="__main__":
                     result = index[w].get(name, "Not Found!")
 
                     if result != "Not Found!":
-                        K = 1.2 * ((1 - 0.75) + (0.75 * ((fLen[name])/avgLen)))
                         tdf = (len(index[w][name]) / fLen[name])
-                        #print(tdf)
-                        score += (log((3495 + 0.5)/(df + 0.5)) * ((2.2 * tdf) / (K + tdf)) * (((1 + 100) * (freq[w])) / (100 + freq[w])))
-        
+                        
+                        score = calculateBM25(index, w, name, fLen, avgLen, df, tdf, freq)
                         #print(w + "\t\t" + name + "\t\t" + str(score))
                         if name in BM25ScoreList.keys():
                             BM25ScoreList[name] += score
                 
                         else:
                             BM25ScoreList[name] = score
+
+            sortedScoreList = sorted(BM25ScoreList.items(), key=lambda x:x[1], reverse=True)
+            
+            if not os.path.exists(BM_25_SCORE_LIST):
+                os.makedirs(BM_25_SCORE_LIST)
         
-        print(BM25ScoreList)                    
+            file = open( BM_25_SCORE_LIST + "/BM_25_SCORE_LIST_" + str(queryNames[queryID-1]) + ".txt", "w")
+            
+            for rank in range(0, 10):
+                data = et.parse('topics.xml')
+                d = data.getroot()
+                
+                ID = d[rank].get('number')
+            
+                text = str(ID) +  "   " + "0" +  "   " + str(rank[rank]) + "\t\t" + str(rank+1) + "BM25" +"\n"
+                file.write(text)
+            
+            queryID += 1
+        
+    
+        #print(sortedScoreList)                    
