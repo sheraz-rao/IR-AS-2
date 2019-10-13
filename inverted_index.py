@@ -190,14 +190,14 @@ def queryParser(term_map):
         
         for word in query2:
             res = (term_map.get(word, "Not Found!"))
-            print(word, res)
+            #print(word, res)
         
             file = "term_info.txt"
             
             if res != "Not Found!":
                 f =  linecache.getline(file, res)
                 #print("\t\tdocs_count")
-                print(f)
+                #print(f)
                 
                 freq[word] = queryFrequency(query2) #it is the tf(q, i) according to formula
         
@@ -232,9 +232,11 @@ def queryFrequency(query):
 # Function to calculate average length of all the documents in the corpus
 def calculateAverageLength(fileLengths):
     avgLength = 0
+    
     for file in fileLengths.keys():
         avgLength += fileLengths[file]
-    return avgLength/N
+    
+    return (avgLength/3495)
 
 # Function to calculate BM25 score
 def calculateBM25(n, f, qf, r, N, dl, avdl):
@@ -305,16 +307,35 @@ if __name__=="__main__":
         res, term_map, fLen = process_files(sys.argv[1])
         hashmap = make_hashmap_of_hashmap(res)
         index = final_indexing(hashmap)
-    
-        # query = input("\nEnter Word to Search: ")
-        # #print(query)
-        
-        # query1 = PorterStemmer().stem(query)
-        
+
         queries, freq = queryParser(term_map)
-        #print(freq)
+
+        avgLen = calculateAverageLength(fLen)
+        score = 0
+        
+        BM25ScoreList = {}
+        
         for word in queries:
             #print(word)
+            score = 0
             for w in word:
                 #print(index[w])
-                print(len(index[w]))
+                df = (len(index[w]))
+                
+                for name in fLen.keys():
+                    result = index[w].get(name, "Not Found!")
+
+                    if result != "Not Found!":
+                        K = 1.2 * ((1 - 0.75) + (0.75 * ((fLen[name])/avgLen)))
+                        tdf = (len(index[w][name]) / fLen[name])
+                        #print(tdf)
+                        score += (log((3495 + 0.5)/(df + 0.5)) * ((2.2 * tdf) / (K + tdf)) * (((1 + 100) * (freq[w])) / (100 + freq[w])))
+        
+                        #print(w + "\t\t" + name + "\t\t" + str(score))
+                        if name in BM25ScoreList.keys():
+                            BM25ScoreList[name] += score
+                
+                        else:
+                            BM25ScoreList[name] = score
+        
+        print(BM25ScoreList)                    
