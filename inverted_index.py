@@ -71,11 +71,11 @@ def process_files(path):
         
         fileLengths[file] = len(text.split())
                     
-        print("stop wording...\n")           
+        #print("stop wording...\n")           
         stop = [w for w in tokens if w not in sp]
         stopwords.close()
         
-        print("stemming...\n")                
+        #print("stemming...\n")                
         stemm = [PorterStemmer().stem(s) for s in stop]
         
         mapping[file] = stemm
@@ -93,7 +93,7 @@ def process_files(path):
         docs.append((str(doc_id) + '\t' + file))
         doc_id += 1
 
-    print("File pre processed.... returning:\n")
+    #print("File pre processed.... returning:\n")
     #term_file.close()                               
     return mapping, term_map, fileLengths
 
@@ -170,6 +170,7 @@ def queryParser(term_map):
     freq = {}
     data = et.parse('topics.xml')
     d = data.getroot()
+    query2 = []
     
     for i in range(0, 10):
         query = (d[i][0].text)
@@ -190,18 +191,24 @@ def queryParser(term_map):
         
         for word in query2:
             res = (term_map.get(word, "Not Found!"))
-            #print(word, res)
+            print(word, res)
         
-            file = "term_info.txt"
+            #file = "term_index.txt"
+            #file1 = "term_info.txt"
             
-            if res != "Not Found!":
-                f =  linecache.getline(file, res)
-                #print("\t\tdocs_count")
-                #print(f)
-                
-                freq[word] = queryFrequency(query2) #it is the tf(q, i) according to formula
+            #f =  linecache.getline(file1, res)
+            
+            with open("term_index.txt", "r") as line:
+                l = line.readlines()[res-1]
+                #l = np.asarray(list(line))
+                op = open("new.txt", "a")
+                op.write(l)
+            
+            #op.write("\n")
+            #op.close()
+            freq[word] = queryFrequency(query2) #it is the tf(q, i) according to formula
         
-        query2 = [w.replace("world'", 'world') for w in query2]
+        #query2 = [w.replace("world'", 'world') for w in query2]
         queries.append(query2)
 
     return queries, freq
@@ -317,7 +324,7 @@ if __name__=="__main__":
         avgLen = calculateAverageLength(fLen)
         
         score = 0
-        queryID = 1
+        #queryID = 1
         
         BM25ScoreList = {}
         
@@ -342,23 +349,24 @@ if __name__=="__main__":
                         else:
                             BM25ScoreList[name] = score
 
-            sortedScoreList = sorted(BM25ScoreList.items(), key=lambda x:x[1], reverse=True)
+            sortedScoreList = (sorted(BM25ScoreList.items(), key=lambda x:x[1], reverse=True))
             
-            if not os.path.exists(BM_25_SCORE_LIST):
-                os.makedirs(BM_25_SCORE_LIST)
+            # if not os.path.exists(BM_25_SCORE_LIST):
+            #     os.makedirs(BM_25_SCORE_LIST)
         
-            file = open( BM_25_SCORE_LIST + "/BM_25_SCORE_LIST_" + str(queryNames[queryID-1]) + ".txt", "w")
+            # file = open( BM_25_SCORE_LIST + "/BM_25_SCORE_LIST_" + str(queryNames[queryID-1]) + ".txt", "w")
             
-            for rank in range(0, 10):
-                data = et.parse('topics.xml')
-                d = data.getroot()
+            # for rank in range(0, 10):
+            #     data = et.parse('topics.xml')
+            #     d = data.getroot()
                 
-                ID = d[rank].get('number')
+            #     ID = d[rank].get('number')
+            #     temp = (sortedScoreList)
+            #     text = str(ID) +  "   " + "0" +  "   " + str(temp[0]) + "\t\t" + str(temp[1]) + "\t\t" + str(rank+1) + " BM25" +"\n"
+            #     file.write(text)
+            #     i += 1
             
-                text = str(ID) +  "   " + "0" +  "   " + str(rank[rank]) + "\t\t" + str(rank+1) + "BM25" +"\n"
-                file.write(text)
-            
-            queryID += 1
+            # queryID += 1
         
     
         #print(sortedScoreList)                    
