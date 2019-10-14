@@ -6,6 +6,7 @@ from nltk import PorterStemmer
 import re
 import codecs
 import sys
+import json
 
 corpus_path = r'F:\IR\IR-AS-1\corpus\corpus\corpus'
 
@@ -165,7 +166,7 @@ INPUT_DIRECTORY = "CORPUS"
 INPUT_FOLDER = os.getcwd() + "/" + INPUT_DIRECTORY
 
 # Function to parse the queries
-def queryParser(term_map):
+def queryParser():
     queries = []
     freq = {}
     data = et.parse('topics.xml')
@@ -190,19 +191,19 @@ def queryParser(term_map):
         query2 = [PorterStemmer().stem(s) for s in query1]
         
         for word in query2:
-            res = (term_map.get(word, "Not Found!"))
-            print(word, res)
+            #res = (term_map.get(word, "Not Found!"))
+            print(word)
         
             #file = "term_index.txt"
             #file1 = "term_info.txt"
             
-            #f =  linecache.getline(file1, res)
-            
-            with open("term_index.txt", "r") as line:
-                l = line.readlines()[res-1]
+            # f =  linecache.getline(term_map_file, word)
+            # print(f)
+            #with open("term_index.txt", "r") as line:
+                #l = line.readlines()[res-1]
                 #l = np.asarray(list(line))
-                op = open("new.txt", "a")
-                op.write(l)
+                #op = open("postings.txt", "a")
+                #op.write(l)
             
             #op.write("\n")
             #op.close()
@@ -317,10 +318,17 @@ if __name__=="__main__":
         res, term_map, fLen = process_files(sys.argv[1])
         hashmap = make_hashmap_of_hashmap(res)
         index = final_indexing(hashmap)
-
-        queries, freq = queryParser(term_map)
-        queryNames = queryTitle()
-
+        
+        with open("index.txt", "w", encoding="utf-8", errors="ignore") as ch:
+            for words, lists in index.items():
+                ch.write(str(words) + ": ")
+                ch.write(str(lists))
+                ch.write("\n")
+        
+        #file = "termids.txt"
+        queries, freq = queryParser()
+        #queryNames = queryTitle()
+        """
         avgLen = calculateAverageLength(fLen)
         
         score = 0
@@ -339,7 +347,7 @@ if __name__=="__main__":
                     result = index[w].get(name, "Not Found!")
 
                     if result != "Not Found!":
-                        tdf = (len(index[w][name]) / fLen[name])
+                        tdf = len(index[w][name])
                         
                         score = calculateBM25(index, w, name, fLen, avgLen, df, tdf, freq)
                         #print(w + "\t\t" + name + "\t\t" + str(score))
@@ -350,7 +358,7 @@ if __name__=="__main__":
                             BM25ScoreList[name] = score
 
             sortedScoreList = (sorted(BM25ScoreList.items(), key=lambda x:x[1], reverse=True))
-            
+            """
             # if not os.path.exists(BM_25_SCORE_LIST):
             #     os.makedirs(BM_25_SCORE_LIST)
         
