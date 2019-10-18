@@ -348,7 +348,11 @@ if __name__=="__main__":
                 (key, val) = line.split(':')
                 d[key] = int(val)
         
-        print(d)                
+        #print(d)
+        
+        for word, values in my_dict.items():
+            #for fname, pos in values.items():
+            print(list(values)[0])                       
         #file = "termids.txt"
         
         #queryNames = queryTitle()
