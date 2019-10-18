@@ -71,7 +71,13 @@ def process_files(path):
         tokens = word_tokenize(text2)
         
         fileLengths[file] = len(text.split())
-                    
+        
+        # fl = open("fileLen.txt", "a", encoding="utf-8")
+        # fl.write(file + ": ")
+        # fl.write(str(fileLengths[file]))
+        # fl.write("\n")
+        # fl.close()
+        
         #print("stop wording...\n")           
         stop = [w for w in tokens if w not in sp]
         stopwords.close()
@@ -315,18 +321,36 @@ if __name__=="__main__":
         
     else:
         print(sys.argv[1])
-        res, term_map, fLen = process_files(sys.argv[1])
-        hashmap = make_hashmap_of_hashmap(res)
-        index = final_indexing(hashmap)
+        #res, term_map, fLen = process_files(sys.argv[1])
+        #hashmap = make_hashmap_of_hashmap(res)
+        #index = final_indexing(hashmap)
         
-        with open("index.txt", "w", encoding="utf-8", errors="ignore") as ch:
-            for words, lists in index.items():
-                ch.write(str(words) + ": ")
-                ch.write(str(lists))
-                ch.write("\n")
-        
-        #file = "termids.txt"
         queries, freq = queryParser()
+        
+        my_dict = {}
+        with open("index.txt", "r", encoding="utf-8", errors="ignore") as ch:
+            #for words in queries:
+                # ch.write(str(words) + ": ")
+                # ch.write(str(lists))
+                # ch.write("\n")
+                #for w in words:
+                    #line = dict(ch.readline())
+                    #rint(line)
+            for line in ch:
+                items = line.split()
+                key, values = items[0], items[1:]
+                my_dict[key] = values
+                #print(my_dict)
+                
+        d = {}
+        with open("fileLen.txt") as f:
+            for line in f:
+                (key, val) = line.split(':')
+                d[key] = int(val)
+        
+        print(d)                
+        #file = "termids.txt"
+        
         #queryNames = queryTitle()
         """
         avgLen = calculateAverageLength(fLen)
