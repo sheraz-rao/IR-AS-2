@@ -7,6 +7,7 @@ import re
 import codecs
 import sys
 import json
+import ast
 
 corpus_path = r'F:\IR\IR-AS-1\corpus\corpus\corpus'
 
@@ -328,37 +329,37 @@ if __name__=="__main__":
         queries, freq = queryParser()
         
         my_dict = {}
-        #with open("index1.txt", "a", encoding="utf-8", errors="ignore") as ch:
-            # for words in queries:
-            #     for w in words:
-            #         ch.write(str(w) + ": ")
-            #         ch.write(str(index[w]))
-            #         ch.write("\n")
+        # with open("index.txt", "a") as ch:
+        #     for words in queries:
+        #         for w in words:
+        #             ch.write(str(w)+": ")
+        #             ch.write(json.dumps(index[w]))
+        #             ch.write("\n")
                     #for w in words:
                     #line = dict(ch.readline())
                     #rint(line)
          
-        name = {}
-        name2 = {}            
-        with open("index1.txt", "r", encoding="utf-8", errors="ignore") as ch:            
+        name = {}          
+        with open("index1.txt", "r") as ch:            
             for line in ch:
                 items = line.split()
-                
-                #print(items[1])
-                for i in items: #to be removed later
-                    #key, values = i[0], i[1:]
-                    name[items[0]] = [i.strip("'") for i in items[1:]]
-                    name2[items[0]] = [i.strip('{') for i in name[items[0]]]
-                print(name2[items[0]])
+                key, values = items[0], items[1:]
+                val = [i for i in values]
+                name[key] = val
+                #print(name[key])
+                print([k for k,v in name[key].items()])   
+                # for k in name[key]:
+                #     print(k)
+                  
                 #print([name[0] for name in items[1:]])
                 #my_dict[key] = values
             #print(my_dict.values())
                 
-        d = {}
-        with open("fileLen.txt", "r", encoding="utf-8") as f:
-            for line in f:
-                (key, val) = line.split(':')
-                d[key] = int(val)
+        # d = {}
+        # with open("fileLen.txt", "r", encoding="utf-8") as f:
+        #     for line in f:
+        #         (key, val) = line.split(':')
+        #         d[key] = int(val)
         
         # temp_dict = {}
         # for name, val in my_dict.items():
