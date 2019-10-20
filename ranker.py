@@ -317,40 +317,45 @@ def writeToFile(queries, invertedIndex, fileLengths):
         queryID += 1
 
 if __name__=="__main__":
-    #if len(sys.argv) != 2:
-        #print("How to use? Write according to this:\n python file_name.py directory_name/path")
+    if len(sys.argv) != 2:
+        print("How to use? Write according to this:\n python file_name.py directory_name/path")
         
-    #else:
-        #print(sys.argv[1])
-        #res, term_map, fLen = process_files(sys.argv[1])
-        #hashmap = make_hashmap_of_hashmap(res)
-        #index = final_indexing(hashmap)
+    else:
+        print(sys.argv[1])
+        res, term_map, fLen = process_files(sys.argv[1])
+        hashmap = make_hashmap_of_hashmap(res)
+        index = final_indexing(hashmap)
         
         queries, freq = queryParser()
         
-        my_dict = {}
-        # with open("index.txt", "a") as ch:
-        #     for words in queries:
-        #         for w in words:
-        #             ch.write(str(w)+": ")
-        #             ch.write(json.dumps(index[w]))
-        #             ch.write("\n")
-                    #for w in words:
-                    #line = dict(ch.readline())
-                    #rint(line)
-         
-        name = {}          
-        with open("index1.txt", "r") as ch:            
+        my = []
+        with open("index.txt", "r") as ch:
+            #for words in queries:
             for line in ch:
-                items = line.split()
-                key, values = items[0], items[1:]
-                val = [i for i in values]
-                name[key] = val
-                #print(name[key])
-                print([k for k,v in name[key].items()])   
-                # for k in name[key]:
-                #     print(k)
+                my.append(line.strip())
+
+        x = [m.strip('\"dict_keys()') for m in my]
+        t = ([y.strip('\"\[\]') for y in x])
+
+        for i in t:
+            print(i, end=",")
+        
+        # name = {}    
+        # s = ''      
+        # with open("index1.txt", "r") as ch:            
+        #     for line in ch:
+        #         items = line.split()
+        #         key, values = items[0], items[1:]
+        #         val = [i for i in values]
+        #         name[key] = val
                   
+        #         for k in name[key]:
+        #             #print(k)
+        #             my = json.loads(json.dumps(k))
+        #             #print(my)
+        #             for n in my:
+        #                 s +=''.join(n)
+            #print(s)      
                 #print([name[0] for name in items[1:]])
                 #my_dict[key] = values
             #print(my_dict.values())
