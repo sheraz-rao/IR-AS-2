@@ -328,17 +328,80 @@ if __name__=="__main__":
         
         queries, freq = queryParser()
         
-        my = []
         with open("index.txt", "r") as ch:
-            #for words in queries:
-            for line in ch:
-                my.append(line.strip())
+            data = [line.rstrip() for line in ch.readlines()]
 
-        x = [m.strip('\"dict_keys()') for m in my]
-        t = ([y.strip('\"\[\]') for y in x])
+        #print(data)
 
-        for i in t:
-            print(i, end=",")
+        name_dict = {}
+        with open("fileLen.txt", "r", encoding="utf-8") as f:
+            for line in f:
+                (key, val) = line.split(':')
+                name_dict[key] = int(val)
+        
+        my_list = []
+        for d in data:
+            name = d.split(' ')
+            #print(name)
+            my_list.append(name)
+            
+        avgLen = calculateAverageLength(name_dict)
+        
+        BM25ScoreList = {}
+        tdf = []
+        for words in queries:
+            score = 0
+            #df = (len(my_list[index]))
+            #print(df)
+            for w in words:
+                #k = (my_list[index][j])
+                #print(name_dict[k]) #this gives the file len
+                #print(k) #this gives the name of files
+                for name in name_dict.keys():
+                #result = index[w].get(name, "Not Found!")
+
+                #if result != "Not Found!":
+                    tdf.append(len(index[w][name]))
+
+                # score = calculateBM25(index, w, name, fLen, avgLen, df, tdf, freq)
+                    #if name in BM25ScoreList.keys():
+                    #   BM25ScoreList[name] += score
+
+                    #else:
+                    #   BM25ScoreList[name] = score
+        print(tdf)
+            #sortedScoreList = (sorted(BM25ScoreList.items(), key=lambda x:x[1], reverse=True))    
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        # my = []
+        # with open("index.txt", "r") as ch:
+        #     #for words in queries:
+        #     for line in ch:
+        #         my.append(line.strip())
+
+        # x = [m.strip('\"dict_keys()') for m in my]
+        # t = ([y.strip('\"\[\]') for y in x])
+
+        # for i in t:
+        #     print(i, end=",")
         
         # name = {}    
         # s = ''      
