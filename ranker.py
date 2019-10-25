@@ -246,33 +246,6 @@ def calculateBM25(w, name, fLen, avgLen, df, tdf, freq):
     
     return score1*score2*score3 
 
-# Function to write top 100 ranked documents for each query 
-def writeToFile(queries, invertedIndex, fileLengths):
-    queryID = 1
-    
-    queryNames = queryTitle()
-    
-    for query in queries:
-        BM25ScoreList = findDocumentsForQuery(query, invertedIndex, fileLengths)
-        print(BM25ScoreList)
-        sortedScoreList = sorted(BM25ScoreList.items(), key=lambda x:x[0], reverse=True)
-        
-        if not os.path.exists(BM_25_SCORE_LIST):
-            os.makedirs(BM_25_SCORE_LIST)
-        
-        file = open( BM_25_SCORE_LIST + "/BM_25_SCORE_LIST_" + str(queryNames[queryID-1]) + ".txt", "w")
-        
-        for rank in range(0, 10):
-            data = et.parse('topics.xml')
-            d = data.getroot()
-            
-            queryID = d[rank].get('number')
-            
-            text = str(queryID) +  "   " + "0" +  "   " + str(sortedScoreList[rank][0]) + "   " + str(rank+1) +  "   " + str(sortedScoreList[rank][1]) +  "   " + "BM25" +"\n"
-            file.write(text)
-        
-        queryID += 1
-
 if __name__=="__main__":
     #if len(sys.argv) != 2:
         #print("How to use? Write according to this:\n python file_name.py directory_name/path")
