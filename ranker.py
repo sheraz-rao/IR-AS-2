@@ -185,10 +185,11 @@ def queryParser():
             
         query2 = [PorterStemmer().stem(s) for s in query1]
         
-        for word in query2:
-            freq[word] = queryFrequency(query2) #it is the tf(q, i) according to formula
-        
         query3 = [w.replace("world'", 'world') for w in query2]
+        
+        for word in query3:
+            freq[word] = queryFrequency(query3) #it is the tf(q, i) according to formula
+        
         queries.append(query3)
 
     return queries, freq
