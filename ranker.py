@@ -347,22 +347,28 @@ if __name__=="__main__":
             
         avgLen = calculateAverageLength(name_dict)
         
-        BM25ScoreList = {}
+        #BM25ScoreList = {}
         tdf = []
         for words in queries:
             score = 0
             #df = (len(my_list[index]))
             #print(df)
             for w in words:
+                pos = 0
                 #k = (my_list[index][j])
                 #print(name_dict[k]) #this gives the file len
                 #print(k) #this gives the name of files
-                for name in name_dict.keys():
+                #temp = index[w]
+                for name, positions in index[w].items():
                 #result = index[w].get(name, "Not Found!")
 
                 #if result != "Not Found!":
-                    tdf.append(len(index[w][name]))
-
+                    pos += (len(positions))
+                
+                with open("postingsFile.txt", "a") as pf:
+                    pf.write(str(pos)+'\n')
+                    
+                tdf.append(pos)
                 # score = calculateBM25(index, w, name, fLen, avgLen, df, tdf, freq)
                     #if name in BM25ScoreList.keys():
                     #   BM25ScoreList[name] += score
@@ -370,92 +376,4 @@ if __name__=="__main__":
                     #else:
                     #   BM25ScoreList[name] = score
         print(tdf)
-            #sortedScoreList = (sorted(BM25ScoreList.items(), key=lambda x:x[1], reverse=True))    
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        # my = []
-        # with open("index.txt", "r") as ch:
-        #     #for words in queries:
-        #     for line in ch:
-        #         my.append(line.strip())
-
-        # x = [m.strip('\"dict_keys()') for m in my]
-        # t = ([y.strip('\"\[\]') for y in x])
-
-        # for i in t:
-        #     print(i, end=",")
-        
-        # name = {}    
-        # s = ''      
-        # with open("index1.txt", "r") as ch:            
-        #     for line in ch:
-        #         items = line.split()
-        #         key, values = items[0], items[1:]
-        #         val = [i for i in values]
-        #         name[key] = val
-                  
-        #         for k in name[key]:
-        #             #print(k)
-        #             my = json.loads(json.dumps(k))
-        #             #print(my)
-        #             for n in my:
-        #                 s +=''.join(n)
-            #print(s)      
-                #print([name[0] for name in items[1:]])
-                #my_dict[key] = values
-            #print(my_dict.values())
-                
-        # d = {}
-        # with open("fileLen.txt", "r", encoding="utf-8") as f:
-        #     for line in f:
-        #         (key, val) = line.split(':')
-        #         d[key] = int(val)
-        
-        # temp_dict = {}
-        # for name, val in my_dict.items():
-        #     #for w in dict(words).keys():
-        #     v = [name.split() for name in val]
-        #     v1 = [s.strip("{") for i in range(len(v)) for s in v[i]]
-        #     temp_dict[name] = v1
-        
-        # for v in my_dict.values():
-        #     print(v)
-    
-        #print(d)
-        #avglen = 0
-        # for key, value in my_dict.items():
-        #     for k in value:
-        #         for name in k.keys():
-        #             print(name)
-                 #for fname, pos in values.items():
-            #name = ((values))
-            # n = name.replace(':', '')
-            # n1 = (n.strip('"'))
-            # n2 = (n1.strip("'"))
-            #avglen += (d[n2])
-            #print(name)
-            # for dic in values:
-            #     for key in dic:
-            #         print(dic[int(key)].replace("{", ''))                           
-        #file = "termids.txt"
-        
-        #queryNames = queryTitle()
-                           
+            #sortedScoreList = (sorted(BM25ScoreList.items(), key=lambda x:x[1], reverse=True))
