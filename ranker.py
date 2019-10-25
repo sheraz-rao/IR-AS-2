@@ -160,18 +160,6 @@ import linecache
 from math import log
 import xml.etree.ElementTree as et
 
-# Declaring global variables
-k1 = 1.2
-k2 = 100
-b = 0.75
-R = 0.0
-r = 0
-N = 1000
-QUERY = "topics.xml"
-BM_25_SCORE_LIST = "BM_25_SCORE_LIST"
-INPUT_DIRECTORY = "CORPUS"
-INPUT_FOLDER = os.getcwd() + "/" + INPUT_DIRECTORY
-
 # Function to parse the queries
 def queryParser():
     queries = []
@@ -198,26 +186,10 @@ def queryParser():
         query2 = [PorterStemmer().stem(s) for s in query1]
         
         for word in query2:
-            #res = (term_map.get(word, "Not Found!"))
-            #print(word)
-        
-            #file = "term_index.txt"
-            #file1 = "term_info.txt"
-            
-            # f =  linecache.getline(term_map_file, word)
-            # print(f)
-            #with open("term_index.txt", "r") as line:
-                #l = line.readlines()[res-1]
-                #l = np.asarray(list(line))
-                #op = open("postings.txt", "a")
-                #op.write(l)
-            
-            #op.write("\n")
-            #op.close()
             freq[word] = queryFrequency(query2) #it is the tf(q, i) according to formula
         
-        #query2 = [w.replace("world'", 'world') for w in query2]
-        queries.append(query2)
+        query3 = [w.replace("world'", 'world') for w in query2]
+        queries.append(query3)
 
     return queries, freq
 
@@ -254,40 +226,24 @@ def calculateAverageLength(fileLengths):
     return (avgLength/3495)
 
 # Function to calculate BM25 score
-def calculateBM25(index, w, name, fLen, avgLen, df, tdf, freq):
+def calculateBM25(w, name, fLen, avgLen, df, tdf, freq):
     
-    K = 1.2 * ((1 - 0.75) + (0.75 * ((fLen[name])/avgLen)))
-    score = (log((3495 + 0.5)/(df + 0.5)) * ((2.2 * tdf) / (K + tdf)) * (((1 + 100) * (freq[w])) / (100 + freq[w])))
+    # K = 1.2 * ((1 - 0.75) + (0.75 * ((fLen[name])/avgLen)))
+    # score = (log((3495 + 0.5)/(df + 0.5)) * ((2.2 * tdf) / (K + tdf)) * (((1 + 100) * (freq[w])) / (100 + freq[w])))
     
-    return score 
-
-# Function to score the documents based on the given query
-def findDocumentsForQuery(query, invertedIndex, fileLengths):
-    queryFreq = queryFrequency(query)
+    # return score
+    l = fLen[name]
+    K = 1.2 * (0.25 + (0.75 * (l/avgLen)))
+    df1 = df + 0.5
+    t = 3495.5/df1
     
-    avdl = calculateAverageLength(fileLengths)
+    score1 = log(t)
     
-    BM25ScoreList = {}
+    score2 = ((2.2 * tdf) / (K + tdf))
     
-    for term in query:
-        if term in invertedIndex.keys():
-            qf = queryFreq[term]
-            docDict = invertedIndex[term]
-            
-            for doc in docDict:
-                n = len(docDict)
-                f = docDict[doc]
-                dl = fileLengths[doc]
-                
-                BM25 = calculateBM25(n, f, qf, r, N, dl, avdl)
-                
-                if doc in BM25ScoreList.keys():
-                    BM25ScoreList[doc] += BM25
-                
-                else:
-                    BM25ScoreList[doc] = BM25
+    score3 = ((101 * freq[w]) / (100 + freq[w]))
     
-    return BM25ScoreList
+    return score1*score2*score3 
 
 # Function to write top 100 ranked documents for each query 
 def writeToFile(queries, invertedIndex, fileLengths):
@@ -317,63 +273,59 @@ def writeToFile(queries, invertedIndex, fileLengths):
         queryID += 1
 
 if __name__=="__main__":
-    if len(sys.argv) != 2:
-        print("How to use? Write according to this:\n python file_name.py directory_name/path")
+    #if len(sys.argv) != 2:
+        #print("How to use? Write according to this:\n python file_name.py directory_name/path")
         
-    else:
-        print(sys.argv[1])
-        res, term_map, fLen = process_files(sys.argv[1])
-        hashmap = make_hashmap_of_hashmap(res)
-        index = final_indexing(hashmap)
-        
-        queries, freq = queryParser()
-        
-        with open("index.txt", "r") as ch:
-            data = [line.rstrip() for line in ch.readlines()]
+    #else:
+    #print(sys.argv[1])
+    #res, term_map, fLen = process_files(sys.argv[1])
+    #hashmap = make_hashmap_of_hashmap(res)
+    #index = final_indexing(hashmap)
+    
+    queries, freq = queryParser()
+    
+    with open("index.txt", "r") as ch:
+        data = [line.rstrip() for line in ch.readlines()]
 
-        #print(data)
+    #print(data)
 
-        name_dict = {}
-        with open("fileLen.txt", "r", encoding="utf-8") as f:
-            for line in f:
-                (key, val) = line.split(':')
-                name_dict[key] = int(val)
+    name_dict = {}
+    with open("fileLen.txt", "r", encoding="utf-8") as f:
+        for line in f:
+            (key, val) = line.split(':')
+            name_dict[key] = int(val)
+    
+    my_list = []
+    for d in data:
+        name = d.split(' ')
+        #print(name)
+        my_list.append(name)
         
-        my_list = []
-        for d in data:
-            name = d.split(' ')
-            #print(name)
-            my_list.append(name)
-            
-        avgLen = calculateAverageLength(name_dict)
-        
-        #BM25ScoreList = {}
-        tdf = []
-        for words in queries:
-            score = 0
-            #df = (len(my_list[index]))
-            #print(df)
-            for w in words:
-                pos = 0
-                #k = (my_list[index][j])
-                #print(name_dict[k]) #this gives the file len
-                #print(k) #this gives the name of files
-                #temp = index[w]
-                for name, positions in index[w].items():
-                #result = index[w].get(name, "Not Found!")
+    avgLen = calculateAverageLength(name_dict)
+    
+    with open("postingsFile.txt", "r") as pf:
+        tdf = [int(p) for p in pf.readlines()]
+    
+    BM25ScoreList = {}
+    count = 0
+    index = 0
+    for words in queries:
+        score = 0
+        df = (len(my_list[index]))
+        index += 1
+        for w in words:
+            for name in name_dict.keys():
+                if count < 22034:
+                    pos = tdf[count]
+                    score = calculateBM25(w, name, name_dict, avgLen, df, pos, freq)
+                    count += 1
+                    if name in BM25ScoreList.keys():
+                        BM25ScoreList[name] += score
 
-                #if result != "Not Found!":
-                    pos += (len(positions))
-                
-                with open("postingsFile.txt", "a") as pf:
-                    pf.write(str(pos)+'\n')
-                    
-                tdf.append(pos)
-                # score = calculateBM25(index, w, name, fLen, avgLen, df, tdf, freq)
-                    #if name in BM25ScoreList.keys():
-                    #   BM25ScoreList[name] += score
-
-                    #else:
-                    #   BM25ScoreList[name] = score
-        print(tdf)
-            #sortedScoreList = (sorted(BM25ScoreList.items(), key=lambda x:x[1], reverse=True))
+                    else:
+                        BM25ScoreList[name] = score
+    
+            sortedScoreList = (sorted(BM25ScoreList.items(), key=lambda x:x[1], reverse=True))
+            print("Sorted list starts here " + w + "\n")
+            print(sortedScoreList)
+            print("\nSorted list ends here\n")

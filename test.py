@@ -150,3 +150,62 @@ for i in range(0, 10):
         #file = "termids.txt"
         
         #queryNames = queryTitle()
+        
+        
+        
+        
+        # Declaring global variables
+k1 = 1.2
+k2 = 100
+b = 0.75
+R = 0.0
+r = 0
+N = 1000
+QUERY = "topics.xml"
+BM_25_SCORE_LIST = "BM_25_SCORE_LIST"
+INPUT_DIRECTORY = "CORPUS"
+INPUT_FOLDER = os.getcwd() + "/" + INPUT_DIRECTORY
+
+
+# Function to score the documents based on the given query
+def findDocumentsForQuery(query, invertedIndex, fileLengths):
+    queryFreq = queryFrequency(query)
+    
+    avdl = calculateAverageLength(fileLengths)
+    
+    BM25ScoreList = {}
+    
+    for term in query:
+        if term in invertedIndex.keys():
+            qf = queryFreq[term]
+            docDict = invertedIndex[term]
+            
+            for doc in docDict:
+                n = len(docDict)
+                f = docDict[doc]
+                dl = fileLengths[doc]
+                
+                BM25 = calculateBM25(n, f, qf, r, N, dl, avdl)
+                
+                if doc in BM25ScoreList.keys():
+                    BM25ScoreList[doc] += BM25
+                
+                else:
+                    BM25ScoreList[doc] = BM25
+    
+    return BM25ScoreList
+
+
+#res = (term_map.get(word, "Not Found!"))
+            #print(word)
+        
+            #file = "term_index.txt"
+            #file1 = "term_info.txt"
+            
+            # f =  linecache.getline(term_map_file, word)
+            # print(f)
+            #with open("term_index.txt", "r") as line:
+                #l = line.readlines()[res-1]
+                #l = np.asarray(list(line))
+                #op = open("postings.txt", "a")
+                #op.write(l)
