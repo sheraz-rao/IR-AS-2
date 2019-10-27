@@ -8,6 +8,7 @@ import codecs
 import sys
 import json
 import ast
+from rank_bm25 import BM25Okapi
 
 corpus_path = r'F:\IR\IR-AS-1\corpus\corpus\corpus'
 
@@ -157,9 +158,10 @@ def final_indexing(parameter):
     return final_index
 
 import linecache
-from math import log
+from math import log10
 import xml.etree.ElementTree as et
 
+id = []
 # Function to parse the queries
 def queryParser():
     queries = []
@@ -170,6 +172,7 @@ def queryParser():
     
     for i in range(0, 10):
         query = (d[i][0].text)
+        id.append(d[i].get('number'))
         query.lower()
         query1 = query.split()
     
@@ -229,39 +232,29 @@ def calculateAverageLength(fileLengths):
 # Function to calculate BM25 score
 def calculateBM25(w, name, fLen, avgLen, df, tdf, freq):
     
-    # K = 1.2 * ((1 - 0.75) + (0.75 * ((fLen[name])/avgLen)))
-    # score = (log((3495 + 0.5)/(df + 0.5)) * ((2.2 * tdf) / (K + tdf)) * (((1 + 100) * (freq[w])) / (100 + freq[w])))
+    K = 1.2 * ((1 - 0.75) + (0.75 * ((fLen[name])/avgLen)))
+    score = (log10((3495 + 0.5)/(df + 0.5)) * ((2.2 * tdf) / (K + tdf)) * (((1 + 1000) * (freq[w])) / (1000 + freq[w])))
     
-    # return score
-    l = fLen[name]
-    K = 1.2 * (0.25 + (0.75 * (l/avgLen)))
-    df1 = df + 0.5
-    t = 3495.5/df1
+    return score
+    # l = fLen[name]
+    # K = 1.2 * (0.25 + (0.75 * (l/avgLen)))
+    # df1 = df + 0.5
+    # t = 3495.5/df1
     
-    score1 = log(t)
+    # score1 = log(t)
     
-    score2 = ((2.2 * tdf) / (K + tdf))
+    # score2 = ((2.2 * tdf) / (K + tdf))
     
-    score3 = ((101 * freq[w]) / (100 + freq[w]))
+    # score3 = ((101 * freq[w]) / (100 + freq[w]))
     
-    return score1*score2*score3 
+    #return score 
 
 if __name__=="__main__":
-    #if len(sys.argv) != 2:
-        #print("How to use? Write according to this:\n python file_name.py directory_name/path")
-        
-    #else:
-    #print(sys.argv[1])
-    #res, term_map, fLen = process_files(sys.argv[1])
-    #hashmap = make_hashmap_of_hashmap(res)
-    #index = final_indexing(hashmap)
     
     queries, freq = queryParser()
     
     with open("index.txt", "r") as ch:
         data = [line.rstrip() for line in ch.readlines()]
-
-    #print(data)
 
     name_dict = {}
     with open("fileLen.txt", "r", encoding="utf-8") as f:
@@ -272,7 +265,6 @@ if __name__=="__main__":
     my_list = []
     for d in data:
         name = d.split(' ')
-        #print(name)
         my_list.append(name)
         
     avgLen = calculateAverageLength(name_dict)
@@ -300,6 +292,10 @@ if __name__=="__main__":
                         BM25ScoreList[name] = score
     
             sortedScoreList = (sorted(BM25ScoreList.items(), key=lambda x:x[1], reverse=True))
-            print("Sorted list starts here " + w + "\n")
-            print(sortedScoreList)
-            print("\nSorted list ends here\n")
+            
+            if index < 10:
+                with open("output.txt", "a") as out:
+                    rank = 1
+                    for tup in sortedScoreList:
+                        out.write(str(id[index]) + "\t" + "0"+ "\t" + str(tup) + "\t\t\t" + str(rank) + "\t" + "BM25" + "\n")
+                        rank += 1
