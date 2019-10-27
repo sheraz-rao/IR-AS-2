@@ -197,19 +197,6 @@ def queryParser():
 
     return queries, freq
 
-def queryTitle():
-    names = []
-    data = et.parse('topics.xml')
-    d = data.getroot()
-    
-    for i in range(0, 10):
-        query = (d[i][0].text)
-        query.lower()
-        query1 = query.splitlines()
-        names.append(query1)
-        
-    return names    
-
 # Function that returns a dictionary of term and its frequency in a query
 def queryFrequency(query):
     queryFreq = {}
@@ -272,15 +259,16 @@ if __name__=="__main__":
     with open("postingsFile.txt", "r") as pf:
         tdf = [int(p) for p in pf.readlines()]
     
+    print(id)
+    
     BM25ScoreList = {}
     count = 0
     index = 0
     for words in queries:
         score = 0
         df = (len(my_list[index]))
-        index += 1
         for w in words:
-            for name in name_dict.keys():
+            for name in my_list[index]:
                 if count < 22034:
                     pos = tdf[count]
                     score = calculateBM25(w, name, name_dict, avgLen, df, pos, freq)
@@ -290,12 +278,17 @@ if __name__=="__main__":
 
                     else:
                         BM25ScoreList[name] = score
-    
+
             sortedScoreList = (sorted(BM25ScoreList.items(), key=lambda x:x[1], reverse=True))
+            print("Sorted list starts here " + w + "\n")
             
             if index < 10:
                 with open("output.txt", "a") as out:
                     rank = 1
                     for tup in sortedScoreList:
-                        out.write(str(id[index]) + "\t" + "0"+ "\t" + str(tup) + "\t\t\t" + str(rank) + "\t" + "BM25" + "\n")
+                        out.write(str(id[index]) + " 0 "+ str(tup) + "\t\t\t" + str(rank) + "\t" + "BM25" + "\n")
                         rank += 1
+            
+            #print(sortedScoreList)
+            print("\nSorted list ends here\n")
+        index += 1                

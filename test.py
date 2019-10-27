@@ -236,3 +236,17 @@
 #             file.write(text)
         
 #         queryID += 1
+
+
+#def queryTitle():
+    #     names = []
+#     data = et.parse('topics.xml')
+#     d = data.getroot()
+    
+#     for i in range(0, 10):
+#         query = (d[i][0].text)
+#         query.lower()
+#         query1 = query.splitlines()
+#         names.append(query1)
+        
+#     return names    
