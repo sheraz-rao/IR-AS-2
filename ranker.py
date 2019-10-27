@@ -8,7 +8,6 @@ import codecs
 import sys
 import json
 import ast
-from rank_bm25 import BM25Okapi
 
 corpus_path = r'F:\IR\IR-AS-1\corpus\corpus\corpus'
 
@@ -160,6 +159,7 @@ def final_indexing(parameter):
 import linecache
 from math import log10
 import xml.etree.ElementTree as et
+import ml_metrics
 
 id = []
 # Function to parse the queries
@@ -261,6 +261,7 @@ if __name__=="__main__":
     
     print(id)
     
+    smoothing = {} 
     BM25ScoreList = {}
     count = 0
     index = 0
@@ -268,20 +269,37 @@ if __name__=="__main__":
         score = 0
         df = (len(my_list[index]))
         for w in words:
+            posts = 0
+            prob_of_word = 0
             for name in my_list[index]:
                 if count < 22034:
                     pos = tdf[count]
-                    score = calculateBM25(w, name, name_dict, avgLen, df, pos, freq)
-                    count += 1
-                    if name in BM25ScoreList.keys():
-                        BM25ScoreList[name] += score
+                    
+                    for i in range(len(my_list[index])):
+                        posts += tdf[count]
+                        
+                score = calculateBM25(w, name, name_dict, avgLen, df, pos, freq)
+                count += 1
+                
+                if name in BM25ScoreList.keys():
+                    BM25ScoreList[name] += score
 
-                    else:
-                        BM25ScoreList[name] = score
+                else:
+                    BM25ScoreList[name] = score
 
+                Lambda = ((name_dict[name]) / (name_dict[name] + int(avgLen)) )
+                Lambda1 = 1-Lambda
+
+                prob_of_word = Lambda*(tdf[count]/(name_dict[name])) + Lambda1*(posts / (sum(name_dict.values())))
+                
+                if name in smoothing.keys():
+                    smoothing[name] += prob_of_word
+
+                else:
+                    smoothing[name] = prob_of_word
+                
             sortedScoreList = (sorted(BM25ScoreList.items(), key=lambda x:x[1], reverse=True))
-            print("Sorted list starts here " + w + "\n")
-            
+            #print("Sorted list starts here " + w + "\n")
             if index < 10:
                 with open("output.txt", "a") as out:
                     rank = 1
@@ -289,6 +307,11 @@ if __name__=="__main__":
                         out.write(str(id[index]) + " 0 "+ str(tup) + "\t\t\t" + str(rank) + "\t" + "BM25" + "\n")
                         rank += 1
             
-            #print(sortedScoreList)
-            print("\nSorted list ends here\n")
+            sortedSmoothing = (sorted(smoothing.items(), key=lambda x:x[1], reverse=True))
+            with open("output.txt1", "a") as out:
+                rank1 = 1
+                for tup in sortedSmoothing:
+                    out.write(str(id[index]) + " 0 "+ str(tup) + "\t\t" + str(rank1) + "\t" + "Smoothing" + "\n")
+                    rank1 += 1    
+            
         index += 1                
